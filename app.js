@@ -71,6 +71,7 @@ function passwordCheck(password){
 }
 
 //valid email
+//https://www.w3resource.com/javascript/form/email-validation.php
 function ValidateEmail(mail) {
  if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(mail))
   {
@@ -100,7 +101,7 @@ app.post('/api/users', asyncHandler(async (req, res) => {
         let createdUser = await User.create(user);
         res.location('/');
         return res.status(201).json();
-      }} catch(error) {
+        }} catch(error) {
           if(error.name === "SequelizeValidationError") {
           return res.status(400).json(error.message);
         } else {
