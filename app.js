@@ -44,21 +44,33 @@ function asyncHandler(cb){
 
 //Authorization Middleware
 const authorizationMiddleware = (asyncHandler( async(req, res, next) => {
-  let user = auth(req);
-  if (user) {
-  let authUser = await User.findAll({
-    where: {
-      emailAddress : user.name
-    },
-    attributes: {
-      exclude: ['password', 'createdAt', 'updatedAt']
-    }
-  });
-  app.locals.user = authUser;
+  let cred = auth(req);
+
+  if (cred) {
+    // find user where email matches username
+    let authUser = await User.findAll({
+      where: { emailAddress : cred.name },
+    });
+      //compare passwords
+      if (authUser.length > 0) {
+        const authPassword = bcrypt.compareSync(cred.pass, authUser[0].dataValues.password);
+      //if password matches, astore user
+        if (authPassword) {
+          authUser = await User.findAll({
+            where: { emailAddress : cred.name },
+            attributes: { exclude: ['password', 'createdAt', 'updatedAt'] }
+          });
+          app.locals.user = authUser;
+        } else {
+          return res.status(401).json("Incorrect Password");
+        }
+      } else {
+        return res.status(401).json("User not found");
+      }
+    } else {
+     return res.status(401).json('Sorry, not Authorized');
+  }
   next();
-} else {
-  return res.status(401).json('Sorry, not Authorized');
-}
 }));
 
 //check to see if password is not NULL
